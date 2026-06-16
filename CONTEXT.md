@@ -2,54 +2,72 @@
 
 ## 项目目标
 
-让 VS Code 里正在运行的 Claude Code 会话同步到飞书。通过 claude-proxy 透明代理 + cc-connect 桥接。
+让 VS Code 里正在运行的 Claude Code 会话同步到飞书手机端。透明代理 + cc-connect 桥接。
 
 ## 目标受众
 
 - **用户**：拾易
-- **下游系统**：cc-connect（飞书），bridge 进程（JSONL → cc-connect send）
+- **下游系统**：cc-connect（飞书），claude-bridge（JSONL 轮询 → cc-connect send）
 
-## 当前状态
+## 当前版本
 
-**Phase 2.5 完成 ✅** — VS Code 会话实时同步到飞书。
+**v0.1-stable** — VS Code Claude 会话只读同步到飞书。
 
-### 架构（最终落地版）
+### 架构
 
 ```
-VS Code Claude → claude-proxy (透明代理) → events/*.jsonl → bridge (2s轮询) → cc-connect send → 飞书
+VS Code Claude → claude-proxy (透明代理) → events/*.jsonl → claude-bridge (2s轮询) → cc-connect → 飞书
 ```
 
-### 各阶段成果
+### 功能
+
+| 功能 | 状态 |
+|------|------|
+| VS Code 透明代理，不影响现有使用 | ✅ |
+| NDJSON 事件解析（assistant/user/tool_use/session_start） | ✅ |
+| events JSONL 落盘（脱敏、限长） | ✅ |
+| bridge 轮询 → cc-connect → 飞书消息推送 | ✅ |
+| bridge 开机自启（Windows 计划任务） | ✅ |
+| 消息精简（只推 assistant/user/tool_use，隐藏 delta/result） | ✅ |
+| 一键启动 start-all.bat | ✅ |
+| 安装/恢复脚本 | ✅ |
+| WebSocket 实时推送 | ⚠️ relay bug，暂用轮询 |
+
+### 日常使用
+
+```text
+启动：Win+R → C:\Users\易朝亮\.cc-connect\start-all.bat
+飞书收发：打开飞书 App → 找到应用 → 对话
+VS Code：正常使用 Claude，会话自动同步到飞书
+```
+
+### 已知限制
+
+- bridge 轮询有 2s 延迟
+- `npm update` 后需重建 claude.exe 副本
+- WebSocket relay 有 bug，暂不启用
+
+## 各阶段成果
 
 | 阶段 | 内容 | 状态 |
 |------|------|------|
 | Phase 0 | 探针：pipe + NDJSON 确认 | ✅ |
 | Phase 1 | 非阻塞 NDJSON 解析 + 事件落盘 | ✅ |
-| Phase 2 | WebSocket 服务器 (9876) | ✅ WS relay 有 bug，暂不用 |
-| Phase 2.5 | bridge 轮询 JSONL → cc-connect → 飞书 | ✅ 当前方案 |
+| Phase 2 | WebSocket 服务器 | ✅ relay bug，默认关闭 |
+| Phase 2.5 | bridge JSONL 轮询 → 飞书 | ✅ |
+| 稳定化 | enable_ws=false, 安装/恢复脚本, git tag, 开机自启 | ✅ |
 
-### 关键发现
+## 下一步
 
-- VS Code 入口：`claudeCode.claudeProcessWrapper` 设置项
-- 全部 pipe 模式，NDJSON 输出
-- Windows 命令行 8191 字符限制：需将 `claude.exe` 复制到 npm 全局目录，使 Go 优先匹配 .exe 绕过 .cmd
-- 飞书直连国内服务器，WebSocket 连接无需代理，仅 API 调用走代理
-
-### bridge 运行方式
-
-```powershell
-$env:BRIDGE_SESSION = "feishu:oc_9837e218cd51ec1fa5f14ec230441973:ou_2f843da75285efd296cec87ed116c1b4"
-C:\Users\易朝亮\.cc-connect\claude-proxy\bin\bridge.exe
-```
-
-### 已知问题
-
-- WS relay goroutine 事件推送有 bug（客户端收不到），暂时用 JSONL 轮询替代
-- proxy 端口 9876 多实例冲突（新 Claude 会话覆用旧端口时 relay 脱节）
-- `claude.exe` npm 目录副本在 `npm update` 后可能丢失
+| 优先级 | 工作 |
+|--------|------|
+| P3 | Phase 4 设计：stdin 注入（飞书控制 Claude） |
+| P4 | Phase 4 PoC 开发 |
+| P5 | WebSocket relay 修复 |
 
 ## 核心约束
 
 - 不破坏 VS Code Claude 扩展原有功能
-- Go 单二进制
+- 仅监听 127.0.0.1
 - bridge 轮询不阻塞主链路
+- Go 单二进制
