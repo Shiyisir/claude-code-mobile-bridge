@@ -2,7 +2,7 @@
 
 ## 项目目标
 
-让 VS Code 里正在运行的 Claude Code 会话能被手机端（飞书/微信）查看。通过 cc-connect 桥接到聊天平台。
+让 VS Code 里正在运行的 Claude Code 会话同步到飞书。通过 claude-proxy 透明代理 + cc-connect 桥接。
 
 ## 目标受众
 
@@ -33,8 +33,7 @@ VS Code Claude → claude-proxy (透明代理) → events/*.jsonl → bridge (2s
 - VS Code 入口：`claudeCode.claudeProcessWrapper` 设置项
 - 全部 pipe 模式，NDJSON 输出
 - Windows 命令行 8191 字符限制：需将 `claude.exe` 复制到 npm 全局目录，使 Go 优先匹配 .exe 绕过 .cmd
-- 飞书直连国内服务器，不需代理
-- 微信 ilink API 在此网络环境不可用（TCP 连接超时）
+- 飞书直连国内服务器，WebSocket 连接无需代理，仅 API 调用走代理
 
 ### bridge 运行方式
 

@@ -49,19 +49,14 @@ powershell -ExecutionPolicy Bypass -File scripts\install-proxy.ps1
 C:\Users\易朝亮\.cc-connect\start-all.bat
 ```
 
-## 恢复
+自动完成：清 CLAUDECODE → 设代理 → 启 cc-connect → 等 10 秒 → 启 bridge。
+
+## 恢复原始 Claude
 
 ```powershell
+cd F:\Documents\Projects\claude-proxy
 powershell -ExecutionPolicy Bypass -File scripts\restore-claude.ps1
 ```
-
-## 一键启动
-
-```
-C:\Users\易朝亮\.cc-connect\start-all.bat
-```
-
-自动完成：清 CLAUDECODE → 设代理 → 启 cc-connect → 等 10 秒 → 启 bridge。Win+R 粘贴回车即可。
 
 proxy 无需手动启动，通过 VS Code `claudeCode.claudeProcessWrapper` 自动拦截。
 
