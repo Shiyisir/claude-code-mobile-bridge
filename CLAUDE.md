@@ -47,7 +47,7 @@
 
 - 改 internal 包前先确认不影响 cmd 入口的透明转发语义
 - 新增配置项必须设默认值，不强制用户填写
-- 新增 WebSocket 消息类型必须在 `internal/ws/messages.go` 注册
+- 新增 WebSocket 消息类型在 `internal/ws/types.go`
 
 ## 输出位置
 
