@@ -154,15 +154,12 @@ func formatMsg(ev jsonEvent, maxChars int) string {
 			text = "[User] " + t
 		}
 	case "tool_use":
-		name := ""
+		// Brief tool hint only
 		if n, ok := ev.Payload["tool_name"].(string); ok {
-			name = n
+			text = "[Tool] " + n
 		}
-		text = "[Tool] " + name
-	case "tool_result":
-		text = "[Tool] 完成"
-	case "session_start":
-		text = "[System] 会话开始"
+	// Hide these to avoid noise:
+	// case "tool_result", "session_start", "assistant_delta", "error", default
 	default:
 		return ""
 	}
