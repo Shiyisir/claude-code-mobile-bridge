@@ -1,8 +1,9 @@
-# repair-config.ps1 — Refresh config.json real_bin after VS Code Claude Code extension update
+# repair-config.ps1 - Refresh config.json real_bin after VS Code Claude Code extension update
 # Run: powershell -ExecutionPolicy Bypass -File scripts/repair-config.ps1
 #
 # Use when VS Code shows "Claude Code process exited with code 1" after an extension update.
-# This script scans for the latest extension version and updates real_bin — no rebuild needed.
+# This script scans for the latest extension version and updates real_bin. No rebuild needed.
+# If config.json is corrupted, it will be rebuilt from scratch.
 
 $ErrorActionPreference = "Stop"
 $proxyRoot = "$env:USERPROFILE\.cc-connect\claude-proxy"
@@ -39,38 +40,54 @@ if (-not (Test-Path $realClaude)) {
 Write-Host "  Latest extension: $($latestExt.Name)"
 Write-Host "  real_bin: $realClaude"
 
-# Read existing config, update only real_bin
+# Read existing config, tolerate corruption
+$restored = $false
 if (Test-Path $configFile) {
-    $config = Get-Content $configFile -Raw | ConvertFrom-Json
-    $oldBin = $config.real_bin
-    $config.real_bin = $realClaude.Replace('\', '\\')
-    $config | ConvertTo-Json | Set-Content $configFile -Encoding UTF8
-    Write-Host "  Old: $oldBin"
-    Write-Host "  New: $($config.real_bin)"
+    try {
+        $raw = Get-Content $configFile -Raw -Encoding UTF8
+        if ($raw.Trim() -ne "") {
+            $config = $raw | ConvertFrom-Json
+            $oldBin = $config.real_bin
+            Write-Host "  Old real_bin: $oldBin"
+        } else {
+            $restored = $true
+        }
+    } catch {
+        Write-Warning "config.json is corrupted (ConvertFrom-Json failed), rebuilding from defaults."
+        Write-Warning "Error: $($_.Exception.Message)"
+        $restored = $true
+    }
 } else {
-    # Config doesn't exist, create minimal config
-    $config = @{
-        real_bin = $realClaude.Replace('\', '\\')
-        enable_ws = $false
-        enable_json_parse = $true
-        parse_stderr = $false
-        drop_unknown_events = $true
-    } | ConvertTo-Json
-    [System.IO.File]::WriteAllText($configFile, $config)
-    Write-Host "  Created new config: $configFile"
+    $restored = $true
 }
-Write-Host "  Config updated."
 
-# Verify
+if ($restored) {
+    Write-Host "  Creating new config from scratch."
+}
+
+# Build fresh config object (ConvertTo-Json handles escaping automatically)
+$config = [ordered]@{
+    real_bin            = $realClaude
+    enable_json_parse   = $true
+    parse_stderr        = $false
+    drop_unknown_events = $true
+    enable_ws           = $false
+}
+
+# Write using Set-Content -Encoding UTF8 (preserves Chinese characters correctly)
+$json = $config | ConvertTo-Json -Depth 5
+Set-Content -Path $configFile -Value $json -Encoding UTF8 -Force
+Write-Host "  config.json written."
+
+# Verify proxy can launch real Claude
 Write-Host "Verifying proxy..."
 $proxyExe = "$proxyRoot\bin\claude.exe"
 if (-not (Test-Path $proxyExe)) {
-    Write-Warning "proxy binary not found at $proxyExe — run install-proxy.ps1 to rebuild"
+    Write-Warning "proxy binary not found at $proxyExe - run install-proxy.ps1 to rebuild"
     exit 0
 }
 
-# Use cmd /c to avoid PowerShell wrapping stderr as NativeCommandError
-$versionOutput = cmd /c "$proxyExe --version 2>&1"
+$versionOutput = cmd /c ""$proxyExe" --version 2>&1"
 if ($LASTEXITCODE -ne 0) {
     Write-Host "  FAILED: proxy --version returned exit code $LASTEXITCODE"
     Write-Host "  Output: $versionOutput"

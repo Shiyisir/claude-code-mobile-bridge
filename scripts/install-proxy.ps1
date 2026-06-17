@@ -108,16 +108,17 @@ Pop-Location
 Write-Host "  Built: $proxyBin\claude.exe"
 Write-Host "  Built: $proxyBin\claude-bridge.exe"
 
-# 4. Write config
+# 4. Write config (ConvertTo-Json handles escaping; do NOT manually Replace backslashes)
 Write-Host "[4/5] Writing config..."
-$config = @{
-    real_bin = $realClaude.Replace('\', '\\')
-    enable_ws = $false
-    enable_json_parse = $true
-    parse_stderr = $false
+$config = [ordered]@{
+    real_bin            = $realClaude
+    enable_json_parse   = $true
+    parse_stderr        = $false
     drop_unknown_events = $true
-} | ConvertTo-Json
-[System.IO.File]::WriteAllText("$proxyRoot\config.json", $config)
+    enable_ws           = $false
+}
+$json = $config | ConvertTo-Json -Depth 5
+Set-Content -Path "$proxyRoot\config.json" -Value $json -Encoding UTF8 -Force
 Write-Host "  Config: $proxyRoot\config.json"
 
 # 5. Verify
