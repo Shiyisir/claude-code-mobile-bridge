@@ -39,8 +39,17 @@ go build -o %USERPROFILE%\.cc-connect\claude-proxy\bin\claude-bridge.exe .\cmd\c
 
 ## 安装
 
+> ⚠️ **必须在外部 PowerShell 窗口中执行**，禁止在 VS Code 集成终端或 Claude Code 会话中运行。
+
 ```powershell
-powershell -ExecutionPolicy Bypass -File scripts\install-proxy.ps1
+cd F:\Documents\Projects\claude-proxy
+powershell -ExecutionPolicy Bypass -File .\scripts\install-proxy.ps1 -Force
+```
+
+先用 `-Force` 省略做 dry-run 预览：
+
+```powershell
+powershell -ExecutionPolicy Bypass -File .\scripts\install-proxy.ps1
 ```
 
 ## 一键启动
@@ -53,12 +62,40 @@ C:\Users\易朝亮\.cc-connect\start-all.bat
 
 ## 恢复原始 Claude
 
+> ⚠️ **必须在外部 PowerShell 窗口中执行**，禁止在 VS Code 集成终端或 Claude Code 会话中运行。
+
 ```powershell
 cd F:\Documents\Projects\claude-proxy
-powershell -ExecutionPolicy Bypass -File scripts\restore-claude.ps1
+powershell -ExecutionPolicy Bypass -File .\scripts\restore-claude.ps1 -Force
+```
+
+先用 `-Force` 省略做 dry-run 预览：
+
+```powershell
+powershell -ExecutionPolicy Bypass -File .\scripts\restore-claude.ps1
 ```
 
 proxy 无需手动启动，通过 VS Code `claudeCode.claudeProcessWrapper` 自动拦截。
+
+## 故障排查
+
+### VS Code 报 "Claude Code process exited with code 1"
+
+这是 VS Code Claude Code 扩展更新后，`real_bin` 指向旧版本目录导致的（如 `2.1.178` → `2.1.179`）。
+
+**修复**：运行 `repair-config.ps1` 自动扫描最新扩展版本并更新配置，无需重建 proxy。
+
+```powershell
+cd F:\Documents\Projects\claude-proxy
+powershell -ExecutionPolicy Bypass -File scripts\repair-config.ps1
+```
+
+修完后 `Ctrl+Shift+P -> Reload Window` 即可。
+
+如果 repair 也失败，运行完整安装：
+```powershell
+powershell -ExecutionPolicy Bypass -File scripts\install-proxy.ps1
+```
 
 ## 注意事项
 

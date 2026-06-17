@@ -22,6 +22,7 @@
 - 禁止保存完整会话明文日志
 - 禁止在 V1 阶段引入 VS Code 扩展 API 依赖
 - 禁止主动加 `--output-format stream-json` 等参数
+- 禁止在 Claude Code 会话中直接执行 `scripts/install-proxy.ps1` / `scripts/restore-claude.ps1`（会杀掉当前 Claude 进程）。提示用户在外部 PowerShell 手动执行。
 
 ### Phase 1 性能禁令
 
