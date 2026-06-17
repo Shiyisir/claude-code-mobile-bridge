@@ -23,3 +23,4 @@
 - [2026-06-17] repair-config 读取损坏 config.json 时 `ConvertFrom-Json` 直接炸 → 加 try/catch 容错，损坏时自动重建
 - [2026-06-17] PowerShell `$ErrorActionPreference = "Stop"` 下 proxy stderr 的 probe 日志被当成错误中断脚本 → `--version` 验证改用 `cmd /c` 包裹避免 NativeCommandError
 - [2026-06-17] install/restore 脚本在 VS Code 内执行会杀掉当前 Claude → 加 `$env:VSCODE_PID` / `TERM_PROGRAM` 检测 + 拒绝执行 + `-Force` 参数
+- [2026-06-17] `.bat` 文件含中文时 cmd.exe 编码错乱 → `rem` 注释 + `set` 命令被拆断，报"不是内部或外部命令"；解法：bat 文件全部用纯 ASCII + `%USERPROFILE%` 替代中文路径，用 `[System.Text.Encoding]::ASCII` 保存
