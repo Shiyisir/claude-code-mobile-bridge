@@ -4,13 +4,22 @@
 
 ---
 
-## Windows 计划任务
+## 开机自启（当前方案：启动文件夹）
 
-- [2026-06-16] `schtasks /Create` 创建的计划任务默认可能 Disabled → 创建后必须 `schtasks /change /tn "任务名" /enable` 启用，否则登录时不触发
-- [2026-06-16] Git Bash 中 `schtasks /query` 的 `/query` 被 Git 路径翻译拦截 → 报"无效参数"，必须用 PowerShell 执行 schtasks 命令
-
-## 开机自启
-
-- [2026-06-16] bridge 自启依赖计划任务 + 启动文件夹两个入口，任一禁用都会断链 → 排查时先 `schtasks /query` 看任务状态，再检查 `shell:startup` 文件夹
-- [2026-06-17] `schtasks /create /delete` 需管理员权限，普通 PowerShell 跑 Access Denied → 改用启动文件夹（`shell:startup`）统一管理所有自启，不需要管理员
+- [2026-06-17] `schtasks /create /delete` 需管理员权限 → 改用启动文件夹（`shell:startup`）统一管理所有自启，不再依赖计划任务
 - [2026-06-16] `start-bridge.bat` 需设 `HTTPS_PROXY`/`HTTP_PROXY` 环境变量，否则 bridge 调 `cc-connect send` 可能走不了代理
+- [2026-06-17] bridge 启动时 cc-connect 未就绪导致退出码 1 → 在 `start-cc.bat` 中加 20s 延迟 + `start-bridge.bat` 再加 30s 延迟
+
+## Windows 计划任务（已废弃）
+
+> v0.1.2 起 bridge 自启已迁移到启动文件夹，不再依赖 schtasks。以下条目仅供历史参考。
+
+- [2026-06-16] `schtasks /Create` 创建的计划任务默认可能 Disabled
+- [2026-06-16] Git Bash 中 `schtasks /query` 被 Git 路径翻译拦截
+
+## 配置与脚本
+
+- [2026-06-17] `config.json` 中文路径乱码 + 反斜杠双重转义 → 根因是 `Replace('\', '\\')` + `ConvertTo-Json` 双重转义；修复：去掉手动转义，统一用 `Set-Content -Encoding UTF8`
+- [2026-06-17] repair-config 读取损坏 config.json 时 `ConvertFrom-Json` 直接炸 → 加 try/catch 容错，损坏时自动重建
+- [2026-06-17] PowerShell `$ErrorActionPreference = "Stop"` 下 proxy stderr 的 probe 日志被当成错误中断脚本 → `--version` 验证改用 `cmd /c` 包裹避免 NativeCommandError
+- [2026-06-17] install/restore 脚本在 VS Code 内执行会杀掉当前 Claude → 加 `$env:VSCODE_PID` / `TERM_PROGRAM` 检测 + 拒绝执行 + `-Force` 参数

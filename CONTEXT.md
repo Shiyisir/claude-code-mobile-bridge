@@ -11,7 +11,7 @@
 
 ## 当前版本
 
-**v0.1-stable** — VS Code Claude 会话只读同步到飞书。
+**v0.1.2-safe-scripts** — VS Code Claude 会话只读同步到飞书。
 
 ### 架构
 
@@ -27,16 +27,17 @@ VS Code Claude → claude-proxy (透明代理) → events/*.jsonl → claude-bri
 | NDJSON 事件解析（assistant/user/tool_use/session_start） | ✅ |
 | events JSONL 落盘（脱敏、限长） | ✅ |
 | bridge 轮询 → cc-connect → 飞书消息推送 | ✅ |
-| bridge 开机自启（Windows 计划任务） | ✅ |
+| bridge 开机自启（Windows 启动文件夹） | ✅ |
 | 消息精简（只推 assistant/user/tool_use，隐藏 delta/result） | ✅ |
 | 一键启动 start-all.bat | ✅ |
-| 安装/恢复脚本 | ✅ |
+| 安装/恢复/修复脚本（含 repair-config） | ✅ |
 | WebSocket 实时推送 | ⚠️ relay bug，暂用轮询 |
 
 ### 日常使用
 
 ```text
-启动：Win+R → C:\Users\易朝亮\.cc-connect\start-all.bat
+启动：开机自动拉起 cc-connect + bridge（通过启动文件夹 start-cc.bat）
+     手动启动：Win+R → C:\Users\易朝亮\.cc-connect\start-all.bat
 飞书收发：打开飞书 App → 找到应用 → 对话
 VS Code：正常使用 Claude，会话自动同步到飞书
 ```
@@ -44,7 +45,7 @@ VS Code：正常使用 Claude，会话自动同步到飞书
 ### 已知限制
 
 - bridge 轮询有 2s 延迟
-- `npm update` 后需重建 claude.exe 副本
+- Claude Code 扩展升级后需运行 `repair-config.ps1`（见 README 故障排查）
 - WebSocket relay 有 bug，暂不启用
 
 ## 各阶段成果
@@ -56,14 +57,17 @@ VS Code：正常使用 Claude，会话自动同步到飞书
 | Phase 2 | WebSocket 服务器 | ✅ relay bug，默认关闭 |
 | Phase 2.5 | bridge JSONL 轮询 → 飞书 | ✅ |
 | 稳定化 | enable_ws=false, 安装/恢复脚本, git tag, 开机自启 | ✅ |
+| v0.1.2 | repair-config, 扩展升级保护, 脚本自杀保护, 自动启动修复 | ✅ |
 
 ## 下一步
 
 | 优先级 | 工作 |
 |--------|------|
+| P1 | 飞书消息格式优化，弱提示 tool_use |
+| P2 | bridge 日志和健康检查 |
 | P3 | Phase 4 设计：stdin 注入（飞书控制 Claude） |
-| P4 | Phase 4 PoC 开发 |
-| P5 | WebSocket relay 修复 |
+| P4 | WebSocket relay 修复 |
+| P5 | Phase 4 PoC 开发 |
 
 ## 核心约束
 

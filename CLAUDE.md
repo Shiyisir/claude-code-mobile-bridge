@@ -53,7 +53,7 @@
 ## 输出位置
 
 - proxy 二进制：`~/.cc-connect/claude-proxy/bin/claude.exe`
-- bridge 二进制：`~/.cc-connect/claude-proxy/bin/bridge.exe`
+- bridge 二进制：`~/.cc-connect/claude-proxy/bin/claude-bridge.exe`
 - 配置：`~/.cc-connect/claude-proxy/config.json`
 - 事件日志：`~/.cc-connect/claude-proxy/events/session-*.jsonl`
 - 探针日志：`~/.cc-connect/claude-proxy/logs/probe-*.json`
