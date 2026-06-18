@@ -97,6 +97,23 @@ powershell -ExecutionPolicy Bypass -File scripts\repair-config.ps1
 powershell -ExecutionPolicy Bypass -File scripts\install-proxy.ps1
 ```
 
+### 清理运行时副本文件
+
+`cleanup-runtime.ps1` 清理代理同步层生成的运行时文件（events JSONL、probe 日志），**不碰 Claude Code 原始历史对话**。只操作 `~\.cc-connect\claude-proxy\events\` 和 `logs\`。
+
+默认 dry-run 预览：
+```powershell
+cd F:\Documents\Projects\claude-proxy
+powershell -ExecutionPolicy Bypass -File .\scripts\cleanup-runtime.ps1
+```
+
+确认后执行：
+```powershell
+powershell -ExecutionPolicy Bypass -File .\scripts\cleanup-runtime.ps1 -Force
+```
+
+保留策略：events 保留最近 20 个 + 24 小时内活跃文件，logs 保留最近 50 个。
+
 ## 注意事项
 
 - 代理内部绝不通过 PATH 查找 `claude`

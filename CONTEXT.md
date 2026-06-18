@@ -30,7 +30,7 @@ VS Code Claude → claude-proxy (透明代理) → events/*.jsonl → claude-bri
 | bridge 开机自启（Windows 启动文件夹） | ✅ |
 | 消息精简（只推 assistant/user/tool_use，隐藏 delta/result） | ✅ |
 | 一键启动 start-all.bat | ✅ |
-| 安装/恢复/修复脚本（含 repair-config） | ✅ |
+| 安装/恢复/修复/清理脚本 | ✅ |
 | WebSocket 实时推送 | ⚠️ relay bug，暂用轮询 |
 
 ### 日常使用
