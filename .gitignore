@@ -1,2 +1,31 @@
 # Claude Code runtime
 .claude/
+
+# Proxy runtime (local, never commit)
+.cc-connect/
+events/
+logs/
+runtime/
+*.jsonl
+*.log
+ws-token
+startup.log
+
+# Local config
+config.json
+*.local.json
+*.toml.lock
+
+# Binaries
+bin/
+*.exe
+*.exe~
+*.bak
+
+# Go build artifacts
+*.test
+*.out
+
+# OS files
+.DS_Store
+Thumbs.db
